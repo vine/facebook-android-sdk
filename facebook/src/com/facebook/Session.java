@@ -1546,7 +1546,7 @@ public class Session implements Serializable {
             startActivityDelegate = new StartActivityDelegate() {
                 @Override
                 public void startActivityForResult(Intent intent, int requestCode) {
-                    fragment.startActivityForResult(intent, requestCode);
+                    fragment.getActivity().startActivityForResult(intent, requestCode);
                 }
 
                 @Override

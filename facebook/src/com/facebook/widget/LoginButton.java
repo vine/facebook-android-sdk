@@ -29,6 +29,9 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
+
 import com.facebook.*;
 import com.facebook.android.R;
 import com.facebook.model.GraphUser;
@@ -36,6 +39,7 @@ import com.facebook.internal.SessionAuthorizationType;
 import com.facebook.internal.SessionTracker;
 import com.facebook.internal.Utility;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,24 +54,19 @@ import java.util.List;
  * Developers can override the use of the active session by calling
  * the {@link #setSession(com.facebook.Session)} method.
  */
-public class LoginButton extends Button {
+public class LoginButton extends Switch {
 
     private static final String TAG = LoginButton.class.getName();
     private String applicationId = null;
     private SessionTracker sessionTracker;
-    private GraphUser user = null;
-    private Session userInfoSession = null; // the Session used to fetch the current user info
-    private boolean confirmLogout;
-    private boolean fetchUserInfo;
-    private String loginText;
-    private String logoutText;
     private UserInfoChangedCallback userInfoChangedCallback;
     private Fragment parentFragment;
     private LoginButtonProperties properties = new LoginButtonProperties();
+    private boolean isParentChecked = true;
 
     static class LoginButtonProperties {
         private SessionDefaultAudience defaultAudience = SessionDefaultAudience.FRIENDS;
-        private List<String> permissions = Collections.<String>emptyList();
+        private List<String> permissions = new ArrayList<String>();
         private SessionAuthorizationType authorizationType = null;
         private OnErrorListener onErrorListener;
         private SessionLoginBehavior loginBehavior = SessionLoginBehavior.SSO_WITH_FALLBACK;
@@ -197,31 +196,6 @@ public class LoginButton extends Button {
     public LoginButton(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        if (attrs.getStyleAttribute() == 0) {
-            // apparently there's no method of setting a default style in xml,
-            // so in case the users do not explicitly specify a style, we need
-            // to use sensible defaults.
-            this.setTextColor(getResources().getColor(R.color.com_facebook_loginview_text_color));
-            this.setTextSize(TypedValue.COMPLEX_UNIT_PX,
-                    getResources().getDimension(R.dimen.com_facebook_loginview_text_size));
-            this.setPadding(getResources().getDimensionPixelSize(R.dimen.com_facebook_loginview_padding_left),
-                    getResources().getDimensionPixelSize(R.dimen.com_facebook_loginview_padding_top),
-                    getResources().getDimensionPixelSize(R.dimen.com_facebook_loginview_padding_right),
-                    getResources().getDimensionPixelSize(R.dimen.com_facebook_loginview_padding_bottom));
-            this.setWidth(getResources().getDimensionPixelSize(R.dimen.com_facebook_loginview_width));
-            this.setHeight(getResources().getDimensionPixelSize(R.dimen.com_facebook_loginview_height));
-            this.setGravity(Gravity.CENTER);
-            if (isInEditMode()) {
-                // cannot use a drawable in edit mode, so setting the background color instead
-                // of a background resource.
-                this.setBackgroundColor(getResources().getColor(R.color.com_facebook_blue));
-                // hardcoding in edit mode as getResources().getString() doesn't seem to work in IntelliJ
-                loginText = "Log in";
-            } else {
-                this.setBackgroundResource(R.drawable.com_facebook_loginbutton_blue);
-            }
-        }
-        parseAttributes(attrs);
         if (!isInEditMode()) {
             initializeActiveSessionWithCachedToken(context);
         }        
@@ -234,7 +208,6 @@ public class LoginButton extends Button {
      */
     public LoginButton(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        parseAttributes(attrs);
         initializeActiveSessionWithCachedToken(context);
     }
 
@@ -468,7 +441,7 @@ public class LoginButton extends Button {
     }
 
     private void finishInit() {
-        setOnClickListener(new LoginClickListener());
+        setOnCheckedChangeListener(new LoginClickListener());
         setButtonText();
         if (!isInEditMode()) {
             sessionTracker = new SessionTracker(getContext(), new LoginButtonCallback(), null, false);
@@ -515,23 +488,8 @@ public class LoginButton extends Button {
         this.properties = properties;
     }
 
-    private void parseAttributes(AttributeSet attrs) {
-        TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.com_facebook_login_view);
-        confirmLogout = a.getBoolean(R.styleable.com_facebook_login_view_confirm_logout, true);
-        fetchUserInfo = a.getBoolean(R.styleable.com_facebook_login_view_fetch_user_info, true);
-        loginText = a.getString(R.styleable.com_facebook_login_view_login_text);
-        logoutText = a.getString(R.styleable.com_facebook_login_view_logout_text);
-        a.recycle();
-    }
-
     private void setButtonText() {
-        if (sessionTracker != null && sessionTracker.getOpenSession() != null) {
-            setText((logoutText != null) ? logoutText :
-                    getResources().getString(R.string.com_facebook_loginview_log_out_button));
-        } else {
-            setText((loginText != null) ? loginText :
-                    getResources().getString(R.string.com_facebook_loginview_log_in_button));
-        }
+        //sessionTracker != null && sessionTracker.getOpenSession() != null;
     }
 
     private boolean initializeActiveSessionWithCachedToken(Context context) {
@@ -553,67 +511,16 @@ public class LoginButton extends Button {
     }
 
     private void fetchUserInfo() {
-        if (fetchUserInfo) {
-            final Session currentSession = sessionTracker.getOpenSession();
-            if (currentSession != null) {
-                if (currentSession != userInfoSession) {
-                    Request request = Request.newMeRequest(currentSession, new Request.GraphUserCallback() {
-                        @Override
-                        public void onCompleted(GraphUser me,  Response response) {
-                            if (currentSession == sessionTracker.getOpenSession()) {
-                                user = me;
-                                if (userInfoChangedCallback != null) {
-                                    userInfoChangedCallback.onUserInfoFetched(user);
-                                }
-                            }
-                            if (response.getError() != null) {
-                                handleError(response.getError().getException());
-                            }
-                        }
-                    });
-                    Request.executeBatchAsync(request);
-                    userInfoSession = currentSession;
-                }
-            } else {
-                user = null;
-                if (userInfoChangedCallback != null) {
-                    userInfoChangedCallback.onUserInfoFetched(user);
-                }
-            }
-        }
+        //null
     }
 
-    private class LoginClickListener implements OnClickListener {
+    private class LoginClickListener implements OnCheckedChangeListener {
 
-        @Override
-        public void onClick(View v) {
+        public void onClick() {
             Context context = getContext();
             final Session openSession = sessionTracker.getOpenSession();
             if (openSession != null) {
                 // If the Session is currently open, it must mean we need to log out
-                if (confirmLogout) {
-                    // Create a confirmation dialog
-                    String logout = getResources().getString(R.string.com_facebook_loginview_log_out_action);
-                    String cancel = getResources().getString(R.string.com_facebook_loginview_cancel_action);
-                    String message;
-                    if (user != null && user.getName() != null) {
-                        message = String.format(getResources().getString(R.string.com_facebook_loginview_logged_in_as), user.getName());
-                    } else {
-                        message = getResources().getString(R.string.com_facebook_loginview_logged_in_using_facebook);
-                    }
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setMessage(message)
-                           .setCancelable(true)
-                           .setPositiveButton(logout, new DialogInterface.OnClickListener() {
-                               public void onClick(DialogInterface dialog, int which) {
-                                   openSession.closeAndClearTokenInformation();
-                               }
-                           })
-                           .setNegativeButton(cancel, null);
-                    builder.create().show();
-                } else {
-                    openSession.closeAndClearTokenInformation();
-                }
             } else {
                 Session currentSession = sessionTracker.getSession();
                 if (currentSession == null || currentSession.getState().isClosed()) {
@@ -642,6 +549,18 @@ public class LoginButton extends Button {
                         }
                     }
                 }
+            }
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if(!isParentChecked){
+                setChecked(false);
+            }else{
+                ArrayList<String> permissions = new ArrayList<String>();
+                permissions.add("publish_actions");
+                setPublishPermissions(permissions);
+                onClick();
             }
         }
     }
