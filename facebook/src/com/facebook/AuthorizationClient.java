@@ -188,7 +188,7 @@ class AuthorizationClient implements Serializable {
     }
 
     boolean tryCurrentHandler() {
-        return !(currentHandler.needsInternetPermission()) && currentHandler.tryAuthorize(pendingRequest);
+        return currentHandler.tryAuthorize(pendingRequest);
     }
 
     void completeAndValidate(Result outcome) {
@@ -386,10 +386,6 @@ class AuthorizationClient implements Serializable {
             return false;
         }
 
-        boolean needsInternetPermission() {
-            return false;
-        }
-
         void cancel() {
         }
     }
@@ -402,11 +398,6 @@ class AuthorizationClient implements Serializable {
         boolean needsRestart() {
             // Because we are presenting WebView UI within the current context, we need to explicitly
             // restart the process if the context goes away and is recreated.
-            return true;
-        }
-
-        @Override
-        boolean needsInternetPermission() {
             return true;
         }
 
