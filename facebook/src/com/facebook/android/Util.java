@@ -16,36 +16,15 @@
 
 package com.facebook.android;
 
-import android.app.AlertDialog.Builder;
-import android.content.Context;
 import android.os.Bundle;
-import com.facebook.internal.Utility;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.*;
 import java.net.*;
 
-/**
- * Utility class supporting the Facebook Object.
- * <p/>
- * THIS CLASS SHOULD BE CONSIDERED DEPRECATED.
- * <p/>
- * All public members of this class are intentionally deprecated.
- * New code should instead use
- * {@link com.facebook.Request}
- * <p/>
- * Adding @Deprecated to this class causes warnings in other deprecated classes
- * that reference this one.  That is the only reason this entire class is not
- * deprecated.
- *
- * @devDocDeprecated
- */
 public final class Util {
 
     private final static String UTF8 = "UTF-8";
 
-    @Deprecated
     public static Bundle decodeUrl(String s) {
         Bundle params = new Bundle();
         if (s != null) {

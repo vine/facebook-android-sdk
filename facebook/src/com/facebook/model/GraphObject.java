@@ -161,10 +161,7 @@ public interface GraphObject {
             }
             Object idA = a.getProperty("id");
             Object idB = b.getProperty("id");
-            if (idA == null || idB == null || !(idA instanceof String) || !(idB instanceof String)) {
-                return false;
-            }
-            return idA.equals(idB);
+            return !(idA == null || idB == null || !(idA instanceof String) || !(idB instanceof String)) && idA.equals(idB);
         }
 
         /**

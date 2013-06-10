@@ -143,10 +143,8 @@ class AuthorizationClient implements Serializable {
     }
 
     boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == pendingRequest.getRequestCode()) {
-            return currentHandler.onActivityResult(requestCode, resultCode, data);
-        }
-        return false;
+        return    (requestCode == pendingRequest.getRequestCode()) &&
+                    currentHandler.onActivityResult(requestCode, resultCode, data);
     }
 
     private List<AuthHandler> getHandlerTypes(AuthorizationRequest request) {
@@ -208,10 +206,7 @@ class AuthorizationClient implements Serializable {
     }
 
     boolean tryCurrentHandler() {
-        if (currentHandler.needsInternetPermission() && !checkInternetPermission()) {
-            return false;
-        }
-        return currentHandler.tryAuthorize(pendingRequest);
+        return !(currentHandler.needsInternetPermission() && !checkInternetPermission()) && currentHandler.tryAuthorize(pendingRequest);
     }
 
     void completeAndValidate(Result outcome) {
