@@ -112,7 +112,7 @@ class AuthorizationClient implements Serializable {
             throw new FacebookException("Attempted to authorize while a request is pending.");
         }
 
-        if (request.needsNewTokenValidation() && !checkInternetPermission()) {
+        if (request.needsNewTokenValidation()) {
             // We're going to need INTERNET permission later and don't have it, so fail early.
             return;
         }
@@ -166,24 +166,6 @@ class AuthorizationClient implements Serializable {
         return handlers;
     }
 
-    boolean checkInternetPermission() {
-        if (checkedInternetPermission) {
-            return true;
-        }
-
-        int permissionCheck = checkPermission(Manifest.permission.INTERNET);
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            String errorType = context.getString(R.string.com_facebook_internet_permission_error_title);
-            String errorDescription = context.getString(R.string.com_facebook_internet_permission_error_message);
-            complete(Result.createErrorResult(errorType, errorDescription));
-
-            return false;
-        }
-
-        checkedInternetPermission = true;
-        return true;
-    }
-
     void tryNextHandler() {
         while (handlersToTry != null && !handlersToTry.isEmpty()) {
             currentHandler = handlersToTry.remove(0);
@@ -206,7 +188,7 @@ class AuthorizationClient implements Serializable {
     }
 
     boolean tryCurrentHandler() {
-        return !(currentHandler.needsInternetPermission() && !checkInternetPermission()) && currentHandler.tryAuthorize(pendingRequest);
+        return !(currentHandler.needsInternetPermission()) && currentHandler.tryAuthorize(pendingRequest);
     }
 
     void completeAndValidate(Result outcome) {
